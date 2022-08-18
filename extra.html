@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Easy Physics Engine</title>
+		<style>
+			body{
+				background-color: #101016;
+			}
+			.ball {
+				position: absolute;
+				border-radius: 100%;
+				background-color: brown;
+			}
+		</style>
+	</head>	
+	<body>
+		<script>
+			//array of balls
+			let balls = [];
+			//vertical gravity
+			let g = 0.01;
+			//dimentions of cells (gsize x gsize)
+			let gsize = Math.floor(window.innerWidth / 32) - 1;
+			//grid
+			let grid = [];
+			//a ball class
+			class Ball {
+				constructor(x, y, r, m) {
+					//ball position
+					this.x = x;
+					this.y = y;
+					//ball radius
+					this.r = r;
+					//ball mass
+					this.m = m;
+					//previous ball position
+					this.px = x;
+					this.py = y;
+					//creating ball element for displaying on the webpage
+					this.dom = document.createElement("div");
+					this.dom.classList.add("ball");
+					this.dom.style.width = (r * 2) + "px";
+					this.dom.style.height = (r * 2) + "px";
+					document.body.append(this.dom);
+					//add this ball to the balls array
+					balls.push(this);
+				}
+				update() {
+					//store previous position in local px, py variables
+					let px = this.px;
+					let py = this.py;
+					//set previous position to the current position
+					this.px = this.x;
+					this.py = this.y;
+					//use euler integration
+					this.x += this.x - px;
+					this.y += this.y - py + g;
+					//make sure the ball is not out of screen bounds
+					if(this.x < this.r) this.x = this.r;
+					if(this.y < this.r) this.y = this.r;
+					if(this.x > window.innerWidth - this.r) this.x = window.innerWidth - this.r;
+					if(this.y > window.innerHeight - this.r) this.y = window.innerHeight - this.r;
+					//update ball element top and left attributes
+					this.dom.style.left = (this.x - this.r) + "px";
+					this.dom.style.top = (this.y - this.r) + "px";
+				}
+				//detect and resolve collision with another ball
+				resolve(ball) {
+					//distance of the two balls origins at wich balls will collide (cr - collision radius)
+					let cr = this.r + ball.r;
+					//difference in balls positions
+					let dx = this.x - ball.x;
+					let dy = this.y - ball.y;
+					//if any of the differences is greater than collision radius then balls don't collide
+					if(Math.abs(dx) > cr) return;
+					if(Math.abs(dy) > cr) return;
+					//do nothing if balls are exactly at the same position
+					if(!dx && !dy) return;
+					//collision radius squared
+					let cr2 = cr * cr;
+					//distance of two balls origins squared
+					let r2 = (dx * dx + dy * dy);
+					//check if balls collide by comparing oorigins distance squared with collision radius squared 
+					if(r2 < cr2) {
+						//if balls collide we will then find the square root of the distance squared for responce calculation
+						let r = Math.sqrt(r2);
+						//Collision responce:
+						//find sum of the balls masses
+						let m2 = this.m + ball.m;
+						//move the balls along the collision normal to the point when they're not colliding, the more mass ball has the less it will be moved
+						this.x += dx / r * (cr - r) / 8 * ball.m / m2;
+						this.y += dy / r * (cr - r) / 8 * ball.m / m2;
+						ball.x -= dx / r * (cr - r) / 8 * this.m / m2;
+						ball.y -= dy / r * (cr - r) / 8 * this.m / m2;
+					}
+				}
+			};
+
+			//create balls under the cursor while mouse is moving
+			document.onmousemove = function(e) {
+				//pick random ball radius from 4 to 20
+				let r = Math.random() * 16 + 4;
+				new Ball(e.clientX, e.clientY, r, r*r);
+			}
+
+			//physics loop
+			setInterval(function() {
+				//clear grid
+				for(let i = 0; i < gsize; i++) {
+					grid[i] = [];
+					for(let j = 0; j < gsize; j++)
+						grid[i][j] = [];
+				}
+				//update each ball and push it to the grid
+				for(let ball of balls) {
+					ball.update();
+					let gx =  Math.floor(ball.x / window.innerWidth * gsize);
+					let gy =  Math.floor(ball.y / window.innerHeight * gsize);
+					grid[gx][gy].push(ball);
+				}
+				//go through the grid
+				for(let i = 0; i < gsize; i++) {
+					for(let j = 0; j < gsize; j++) {
+						let cell = grid[i][j];
+						//concat current grid cell with neighboring grid cells so that the balls that overlap multiple cells get updated properly 
+						if(i < gsize - 1) cell = cell.concat(grid[i+1][j]);
+						if(j < gsize - 1) cell = cell.concat(grid[i][j+1]);
+						if(i < gsize - 1 && j < gsize - 1) cell = cell.concat(grid[i+1][j+1]);
+						//check and resolve collisions for each ball in cells cluster
+						for(let ci = 0; ci < cell.length; ci++) {
+							for(let cj = ci + 1; cj < cell.length; cj++) {
+								cell[ci].resolve(cell[cj]);
+							}
+						}
+					}
+				}
+			}, 0);
+		</script>
+	</body>
+</html>
