@@ -1,32 +1,33 @@
 <script>a=[]
 h=870
 u=document
-u.onclick=function(e){o=e.clientX
+u.onclick=(e)=>{o=e.clientX
 r=e.clientY
 d=u.createElement("c")
 s=d.style
 b={x:o,y:r,c:o,u:r,s:s}
 u.body.append(d)
 s.width=s.height=32
-s.borderRadius=32+"px"
+s.borderRadius='32px'
 s.background="#000"
 s.position="absolute"
 a.push(b)}
-setInterval(function(){for(b of a){v=b.c
-i=b.u
-x=b.x
-y=b.y
-b.c=x
-b.u=y
+setInterval(()=>{for(i of a){v=i.c
+l=i.u
+x=i.x
+y=i.y
+i.c=x
+i.u=y
 if(y>h)y=h
-b.x+=x-v
-b.y+=y-i+0.01
-b.s.left=x-16
-b.s.top=y-16}for(i of a)for(j of a){z=i.x-j.x
+i.x+=x-v
+i.y+=y-l+0.01
+i.s.left=x-16
+i.s.top=y-16
+for(j of a){z=i.x-j.x
 t=i.y-j.y
 r=z*z+t*t
 if(r<1e3&r){
 i.x+=z/r
 i.y+=t/r
 j.x-=z/r
-j.y-=t/r}}})</script>
+j.y-=t/r}}}})</script>

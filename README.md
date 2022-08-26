@@ -2,7 +2,7 @@
 Minimalistic Physics Simulations
 
 # mini.html
-Physics simulation written in only 492 characters
+Physics simulation written in only 469 characters
 Click to create bouncing balls under the mouse cursor
 
 # extra.html
